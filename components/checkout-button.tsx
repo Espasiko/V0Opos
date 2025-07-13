@@ -81,3 +81,4 @@ export function CheckoutButton({ isWaitlist = false, email, className, children 
     </Button>
   )
 }
+

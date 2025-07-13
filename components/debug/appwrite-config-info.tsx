@@ -45,3 +45,4 @@ export function AppwriteConfigInfo() {
     </div>
   )
 }
+

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { PocketBaseApi } from "@/lib/pocketbase-api"
+import { Client, Account } from "appwrite"
 
 export async function POST(request: Request) {
   try {
@@ -9,25 +9,52 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Email y contraseña son requeridos" }, { status: 400 })
     }
 
-    try {
-      console.log("Intentando iniciar sesión con PocketBase:", email)
-      const result = await PocketBaseApi.signIn(email, password)
+    // Configurar cliente de Appwrite
+    const client = new Client()
+      .setEndpoint("https://cloud.appwrite.io/v1")
+      .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID || "")
 
-      return NextResponse.json({
+    const account = new Account(client)
+
+    // Iniciar sesión
+    try {
+      const session = await account.createEmailSession(email, password)
+
+      // Obtener datos del usuario
+      const user = await account.get()
+
+      // Configurar cookies para mantener la sesión
+      const response = NextResponse.json({
         success: true,
         user: {
-          id: result.user.id,
-          email: result.user.email,
-          nombre: result.user.name,
+          id: user.$id,
+          email: user.email,
+          nombre: user.name,
         },
-        token: result.token,
+        session: {
+          id: session.$id,
+        },
       })
+
+      // Asegurar que las cookies de Appwrite se mantengan
+      const appwriteCookies = request.headers.get("cookie")
+      if (appwriteCookies) {
+        response.headers.set("set-cookie", appwriteCookies)
+      }
+
+      return response
     } catch (error: any) {
       console.error("Error al iniciar sesión:", error)
-      return NextResponse.json({ message: error.message || "Error al iniciar sesión" }, { status: 401 })
+
+      if (error.code === 401) {
+        return NextResponse.json({ message: "Credenciales incorrectas" }, { status: 401 })
+      }
+
+      return NextResponse.json({ message: error.message || "Error al iniciar sesión" }, { status: 500 })
     }
   } catch (error: any) {
     console.error("Error en la API de login:", error)
     return NextResponse.json({ message: error.message || "Error al iniciar sesión" }, { status: 500 })
   }
 }
+

@@ -93,3 +93,4 @@ export interface BOEBusquedaParams {
   relevancia_minima?: number
   limite?: number
 }
+

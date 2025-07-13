@@ -10,3 +10,4 @@ const correct = false
 const and = false
 
 // Rest of the code would go here, using the declared variables.
+

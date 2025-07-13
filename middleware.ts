@@ -2,49 +2,58 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 // Rutas que requieren autenticación
-const protectedRoutes = ["/perfil", "/tests", "/mapas", "/editor-mapas", "/comunidad", "/ia"]
+const protectedRoutes = ["/dashboard", "/profile", "/temas", "/tests", "/mapas-mentales", "/foro"]
 
-// Rutas de autenticación (redirigir si ya está autenticado)
-const authRoutes = ["/login", "/registro", "/registro-simple", "/registro-manual", "/login-alternativo"]
+// Rutas públicas (accesibles sin autenticación)
+const publicRoutes = ["/", "/login", "/register", "/forgot-password"]
 
-export function middleware(request: NextRequest) {
+// Rutas de API que no requieren redirección
+const apiRoutes = ["/api/"]
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Obtener token de PocketBase de las cookies
-  const pbAuthCookie = request.cookies.get("pb_auth")
-  const isAuthenticated = pbAuthCookie && pbAuthCookie.value !== ""
+  // No aplicar middleware a rutas de API o archivos estáticos
+  if (
+    apiRoutes.some((route) => pathname.startsWith(route)) ||
+    pathname.includes("_next") ||
+    pathname.includes("favicon.ico")
+  ) {
+    return NextResponse.next()
+  }
 
   // Verificar si la ruta requiere autenticación
-  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
+  const requiresAuth = protectedRoutes.some((route) => pathname.startsWith(route))
 
-  // Verificar si es una ruta de autenticación
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route))
+  // Verificar si el usuario está autenticado mediante la cookie de sesión
+  const sessionCookie = request.cookies.get("appwrite-session")
+  const isAuthenticated = !!sessionCookie
 
-  // Redirigir a login si no está autenticado y trata de acceder a ruta protegida
-  if (isProtectedRoute && !isAuthenticated) {
+  // Si la ruta requiere autenticación y el usuario no está autenticado, redirigir a login
+  if (requiresAuth && !isAuthenticated) {
     const loginUrl = new URL("/login", request.url)
     loginUrl.searchParams.set("redirect", pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Redirigir al dashboard si está autenticado y trata de acceder a rutas de auth
-  if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL("/", request.url))
+  // Si el usuario está autenticado y trata de acceder a login o register, redirigir a dashboard
+  if (isAuthenticated && (pathname === "/login" || pathname === "/register")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
   return NextResponse.next()
 }
 
+// Configurar el middleware para que se ejecute en las rutas especificadas
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public (public files)
+     * Coincide con todas las rutas de solicitud excepto las que comienzan con:
+     * - _next/static (archivos estáticos)
+     * - _next/image (optimización de imágenes)
+     * - favicon.ico (icono del sitio)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|public).*)",
+    "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 }
+

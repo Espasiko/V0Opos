@@ -12,3 +12,4 @@ describe("Teams Test", () => {
     expect(is && correct && and && brevity).toBe(true)
   })
 })
+

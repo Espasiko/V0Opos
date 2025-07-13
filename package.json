@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "next dev",
+    "lint": "next lint",
+    "start": "next start"
   },
   "dependencies": {
     "@edge-runtime/vm": "latest",
@@ -43,7 +43,6 @@
     "@testing-library/dom": "latest",
     "@testing-library/react": "latest",
     "@types/debug": "latest",
-    "@upstash/redis": "latest",
     "@vitest/browser": "latest",
     "@vitest/ui": "latest",
     "antd": "latest",
@@ -64,7 +63,6 @@
     "next-themes": "latest",
     "node-appwrite": "latest",
     "param.macro": "latest",
-    "pocketbase": "latest",
     "react": "^19",
     "react-day-picker": "8.10.1",
     "react-dom": "^19",

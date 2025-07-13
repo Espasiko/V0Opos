@@ -1,17 +1,14 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { useRouter } from "next/navigation"
-import { PocketBaseApi } from "@/lib/pocketbase-api"
-import { pb } from "@/lib/pocketbase"
+import type React from "react"
 
-// Tipos
+import { createContext, useContext, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+
 interface User {
   id: string
   email: string
   nombre: string
-  role: "user" | "admin"
-  ubicacion?: string
 }
 
 interface AuthContextType {
@@ -21,14 +18,11 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, nombre: string, ubicacion?: string) => Promise<void>
   logout: () => Promise<void>
-  clearError: () => void
 }
 
-// Contexto de autenticación
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Proveedor de autenticación usando PocketBase
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -40,50 +34,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         setLoading(true)
 
-        // Verificar si hay una sesión válida en PocketBase
-        if (pb.authStore.isValid) {
-          const currentUser = await PocketBaseApi.getCurrentUser()
+        try {
+          // Usar una URL absoluta para evitar problemas de construcción de URL
+          const apiUrl = window.location.origin + "/api/auth/me"
+          console.log("Verificando autenticación en:", apiUrl)
 
-          if (currentUser) {
-            setUser({
-              id: currentUser.id,
-              email: currentUser.email,
-              nombre: currentUser.name,
-              ubicacion: currentUser.ubicacion,
-              role: "user", // Por defecto, se puede expandir más tarde
-            })
+          const response = await fetch(apiUrl, {
+            credentials: "include",
+            cache: "no-store",
+          })
+
+          if (!response.ok) {
+            // Si la respuesta no es exitosa, no intentamos parsear JSON
+            if (response.status === 401) {
+              // Usuario no autenticado, esto es normal
+              console.log("Usuario no autenticado (401)")
+              setUser(null)
+              return
+            }
+
+            // Para otros errores, registramos el problema
+            console.error("Error de autenticación:", response.status, response.statusText)
+            setUser(null)
+            return
+          }
+
+          // Solo intentamos parsear JSON si la respuesta es exitosa
+          const data = await response.json()
+          console.log("Datos de usuario recibidos:", data)
+
+          // Verificar si tenemos datos de usuario válidos
+          if (data.user && data.user.id && data.user.email) {
+            setUser(data.user)
+            console.log("Usuario autenticado:", data.user)
           } else {
+            console.error("Datos de usuario incompletos:", data)
             setUser(null)
           }
-        } else {
+        } catch (fetchError) {
+          console.error("Error al verificar autenticación:", fetchError)
           setUser(null)
         }
-      } catch (error) {
-        console.error("Error al verificar autenticación:", error)
-        setUser(null)
       } finally {
         setLoading(false)
       }
     }
 
     checkAuth()
-
-    // Escuchar cambios en el authStore de PocketBase
-    const unsubscribe = pb.authStore.onChange(() => {
-      if (!pb.authStore.isValid) {
-        setUser(null)
-      }
-    })
-
-    return () => {
-      unsubscribe()
-    }
   }, [])
-
-  // Función para limpiar errores
-  const clearError = () => {
-    setError(null)
-  }
 
   // Función para iniciar sesión
   const login = async (email: string, password: string) => {
@@ -91,19 +89,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null)
 
     try {
-      const result = await PocketBaseApi.signIn(email, password)
+      const apiUrl = window.location.origin + "/api/auth/login"
+      console.log("Iniciando sesión en:", apiUrl)
 
-      setUser({
-        id: result.user.id,
-        email: result.user.email,
-        nombre: result.user.name,
-        ubicacion: result.user.ubicacion,
-        role: "user",
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: "include",
       })
 
-      router.push("/")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al iniciar sesión")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Error al iniciar sesión")
+      }
+
+      const data = await response.json()
+      console.log("Respuesta de login:", data)
+
+      if (data.user) {
+        setUser(data.user)
+        router.push("/")
+      } else {
+        throw new Error("No se recibieron datos de usuario")
+      }
+    } catch (err: any) {
+      setError(err.message || "Error al iniciar sesión")
       console.error("Error en login:", err)
     } finally {
       setLoading(false)
@@ -116,19 +129,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null)
 
     try {
-      const result = await PocketBaseApi.signUp(email, password, nombre, ubicacion)
+      const apiUrl = window.location.origin + "/api/auth/register"
+      console.log("Registrando usuario en:", apiUrl)
 
-      setUser({
-        id: result.user.id,
-        email: result.user.email,
-        nombre: result.user.name,
-        ubicacion: result.user.ubicacion,
-        role: "user",
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password, nombre, ubicacion }),
+        credentials: "include",
       })
 
-      router.push("/")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al registrar usuario")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Error al registrar usuario")
+      }
+
+      const data = await response.json()
+      console.log("Respuesta de registro:", data)
+
+      if (data.user) {
+        setUser(data.user)
+        router.push("/")
+      } else {
+        throw new Error("No se recibieron datos de usuario")
+      }
+    } catch (err: any) {
+      setError(err.message || "Error al registrar usuario")
       console.error("Error en registro:", err)
     } finally {
       setLoading(false)
@@ -140,7 +168,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true)
 
     try {
-      await PocketBaseApi.signOut()
+      const apiUrl = window.location.origin + "/api/auth/logout"
+      console.log("Cerrando sesión en:", apiUrl)
+
+      await fetch(apiUrl, {
+        method: "POST",
+        credentials: "include",
+      })
+
       setUser(null)
       router.push("/login")
     } catch (err) {
@@ -151,9 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, register, logout, clearError }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, loading, error, login, register, logout }}>{children}</AuthContext.Provider>
   )
 }
 
@@ -167,3 +200,4 @@ export function useAuth() {
 
   return context
 }
+

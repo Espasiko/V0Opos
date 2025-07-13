@@ -8,8 +8,8 @@ import { AuthProvider } from "@/hooks/use-auth"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "OposIA - Preparación para Oposiciones con IA",
-  description: "Plataforma de preparación para oposiciones usando PocketBase e IA",
+  title: "OposIA - Preparación para Oposiciones de Seguridad Social",
+  description: "Plataforma de preparación para oposiciones de Seguridad Social con IA",
     generator: 'v0.dev'
 }
 
@@ -28,3 +28,4 @@ export default function RootLayout({
     </html>
   )
 }
+

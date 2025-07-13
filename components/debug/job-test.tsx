@@ -31,3 +31,4 @@ it("renders a job component", () => {
   const locationElement = screen.getByText("Test Location")
   expect(locationElement).toBeInTheDocument()
 })
+

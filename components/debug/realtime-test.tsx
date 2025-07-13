@@ -20,3 +20,4 @@ const RealtimeTest = () => {
 }
 
 export default RealtimeTest
+

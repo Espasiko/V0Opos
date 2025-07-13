@@ -43,3 +43,4 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Error al procesar la solicitud" }, { status: 500 })
   }
 }
+

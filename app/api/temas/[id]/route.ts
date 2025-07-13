@@ -64,3 +64,4 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     return NextResponse.json({ error: `Error al eliminar tema ${params.id}` }, { status: 500 })
   }
 }
+

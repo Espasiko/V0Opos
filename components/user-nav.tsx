@@ -16,7 +16,7 @@ import { User, Settings, LogOut } from "lucide-react"
 import Link from "next/link"
 
 export function UserNav() {
-  const { user, logout, loading } = useAuth()
+  const { user, logout } = useAuth()
 
   if (!user) {
     return (
@@ -58,7 +58,6 @@ export function UserNav() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.nombre}</p>
             <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-            {user.ubicacion && <p className="text-xs leading-none text-muted-foreground">📍 {user.ubicacion}</p>}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -77,11 +76,12 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => logout()} className="cursor-pointer" disabled={loading}>
+        <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />
-          <span>{loading ? "Cerrando..." : "Cerrar sesión"}</span>
+          <span>Cerrar sesión</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
 }
+

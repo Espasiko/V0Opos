@@ -220,3 +220,4 @@ Este documento tiene una relevancia ALTA para las oposiciones de Seguridad Socia
     throw new Error("No se pudo analizar el documento")
   }
 }
+

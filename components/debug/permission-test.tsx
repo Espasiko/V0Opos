@@ -15,3 +15,4 @@ describe("Permission Test Component", () => {
     expect(1 + 1).toBe(2)
   })
 })
+

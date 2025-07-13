@@ -23,3 +23,4 @@ describe("Appwrite Status Component", () => {
     expect(isTrue && andAlsoTrue).toBe(true)
   })
 })
+
