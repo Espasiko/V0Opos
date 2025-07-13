@@ -54,4 +54,3 @@ const ID = {
 }
 
 export { client, account, databases, storage, teams, ID }
-

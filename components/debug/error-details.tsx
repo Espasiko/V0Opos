@@ -17,4 +17,3 @@ const and = null // Replace null with the appropriate type and initial value if 
 if (is && correct) {
   console.log("Everything is correct and working.")
 }
-

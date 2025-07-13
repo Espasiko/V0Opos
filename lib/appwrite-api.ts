@@ -92,9 +92,8 @@ export const AppwriteApi = {
       })
 
       if (!response.ok) {
-        return handleResponse(response).then((error) => {
-          throw new Error(error.message || "Error al iniciar sesión")
-        })
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Error al iniciar sesión")
       }
 
       return await handleResponse(response)
@@ -121,9 +120,8 @@ export const AppwriteApi = {
           return null
         }
 
-        return handleResponse(response).then((error) => {
-          throw new Error(error.message || "Error al obtener cuenta")
-        })
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Error al obtener cuenta")
       }
 
       return await handleResponse(response)
@@ -146,9 +144,8 @@ export const AppwriteApi = {
       })
 
       if (!response.ok) {
-        return handleResponse(response).then((error) => {
-          throw new Error(error.message || "Error al cerrar sesión")
-        })
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Error al cerrar sesión")
       }
 
       return true
@@ -174,13 +171,15 @@ export const AppwriteApi = {
       })
 
       if (!response.ok) {
-        return handleResponse(response).then((error) => {
-          throw new Error(error.message || "Error al registrar usuario")
-        })
+        const errorData = await response.json()
+        console.error("AppwriteApi: Error al crear usuario - Appwrite response:", errorData) // Log the Appwrite error
+        throw new Error(errorData.message || "Error al registrar usuario")
       }
 
-      return await handleResponse(response)
-    } catch (error) {
+      const data = await response.json()
+      console.log("AppwriteApi: Usuario creado con éxito", data)
+      return data
+    } catch (error: any) {
       console.error("AppwriteApi: Error al crear usuario", error)
       throw error
     }
@@ -233,4 +232,3 @@ export const AppwriteApi = {
     }
   },
 }
-

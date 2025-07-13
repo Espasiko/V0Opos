@@ -29,4 +29,3 @@ export async function GET() {
     return NextResponse.json({ message: error.message || "Error al obtener información del SDK" }, { status: 500 })
   }
 }
-

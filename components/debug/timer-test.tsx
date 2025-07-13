@@ -13,4 +13,3 @@ describe("Timer Test", () => {
     expect(is && correct && and && brevity).toBe(true)
   })
 })
-

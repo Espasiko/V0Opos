@@ -19,4 +19,3 @@ const IntervalTest = () => {
 }
 
 export default IntervalTest
-

@@ -21,4 +21,3 @@ describe("Messages", () => {
     expect(screen.getByText("No messages to display.")).toBeInTheDocument()
   })
 })
-

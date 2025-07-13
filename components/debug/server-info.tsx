@@ -20,4 +20,3 @@ const ServerInfo = () => {
 }
 
 export default ServerInfo
-

@@ -37,4 +37,3 @@ console.log("Appwrite SDK check:", {
 
 // Exportar los servicios
 export { client, account, databases, storage, teams, ID, hasCreateEmailSession, hasCreate, hasDeleteSession }
-

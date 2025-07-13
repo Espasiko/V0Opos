@@ -40,4 +40,3 @@ const CronTest = () => {
 }
 
 export default CronTest
-

@@ -21,4 +21,3 @@ const CorsInfo = () => {
 }
 
 export default CorsInfo
-

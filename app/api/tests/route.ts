@@ -1,18 +1,10 @@
 import { NextResponse } from "next/server"
-
-// URL base de la API de backend (en el servidor)
-const API_BASE_URL = process.env.API_URL || "http://localhost:8000"
+import { PocketBaseApi } from "@/lib/pocketbase-api"
 
 export async function GET() {
   try {
-    const response = await fetch(`${API_BASE_URL}/tests`)
-
-    if (!response.ok) {
-      throw new Error("Error al obtener tests")
-    }
-
-    const data = await response.json()
-    return NextResponse.json(data)
+    const tests = await PocketBaseApi.getTests()
+    return NextResponse.json(tests)
   } catch (error) {
     console.error("Error en API Route /api/tests:", error)
     return NextResponse.json({ error: "Error al obtener tests" }, { status: 500 })
@@ -22,24 +14,10 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-
-    const response = await fetch(`${API_BASE_URL}/tests`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!response.ok) {
-      throw new Error("Error al crear test")
-    }
-
-    const data = await response.json()
-    return NextResponse.json(data)
+    const test = await PocketBaseApi.crearTest(body)
+    return NextResponse.json(test)
   } catch (error) {
     console.error("Error en API Route /api/tests (POST):", error)
     return NextResponse.json({ error: "Error al crear test" }, { status: 500 })
   }
 }
-

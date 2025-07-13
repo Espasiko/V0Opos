@@ -23,4 +23,3 @@ const WebhookTest = () => {
 }
 
 export default WebhookTest
-

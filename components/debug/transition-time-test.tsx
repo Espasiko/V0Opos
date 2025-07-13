@@ -20,4 +20,3 @@ const TransitionTimeTest = () => {
 }
 
 export default TransitionTimeTest
-

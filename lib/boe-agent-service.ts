@@ -290,4 +290,3 @@ export class BOEAgentWorkflow {
 
 // Exportar una instancia del flujo de trabajo
 export const boeAgentWorkflow = new BOEAgentWorkflow()
-

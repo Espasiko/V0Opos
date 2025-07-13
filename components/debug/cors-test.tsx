@@ -14,4 +14,3 @@ const correct = true // Or import: import { correct } from '...';
 const and = true // Or import: import { and } from '...';
 
 // The rest of the component code would go here, using the declared variables.
-

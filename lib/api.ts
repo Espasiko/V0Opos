@@ -274,4 +274,3 @@ export async function generarResumen(temaId: number): Promise<string | null> {
     return null
   }
 }
-

@@ -41,4 +41,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: "Error al generar resumen" }, { status: 500 })
   }
 }
-

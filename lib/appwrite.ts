@@ -56,4 +56,3 @@ export function createDatabases() {
 export function createStorage() {
   return storage
 }
-

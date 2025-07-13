@@ -110,6 +110,9 @@ importers:
       '@types/debug':
         specifier: latest
         version: 4.1.12
+      '@upstash/redis':
+        specifier: latest
+        version: 1.35.1
       '@vitest/browser':
         specifier: latest
         version: 3.2.4(vite@6.3.5(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.0))(vitest@3.2.4)
@@ -170,6 +173,9 @@ importers:
       param.macro:
         specifier: latest
         version: 3.2.1
+      pocketbase:
+        specifier: latest
+        version: 0.26.1
       react:
         specifier: ^19
         version: 19.0.0
@@ -1977,6 +1983,9 @@ packages:
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
 
+  '@upstash/redis@1.35.1':
+    resolution: {integrity: sha512-sIMuAMU9IYbE2bkgDby8KLoQKRiBMXn0moXxqLvUmQ7VUu2CvulZLtK8O0x3WQZFvvZhU5sRC2/lOVZdGfudkA==}
+
   '@vitest/browser@3.2.4':
     resolution: {integrity: sha512-tJxiPrWmzH8a+w9nLKlQMzAKX/7VjFs50MWgcAj7p9XQ7AQ9/35fByFYptgPELyLw+0aixTnC4pUWV+APcZ/kw==}
     peerDependencies:
@@ -3224,6 +3233,9 @@ packages:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
     engines: {node: '>= 6'}
 
+  pocketbase@0.26.1:
+    resolution: {integrity: sha512-fjcPDpxyqTZCwqGUTPUV7vssIsNMqHxk9GxbhxYHPEf18RqX2d9cpSqbbHk7aas30jqkgptuKfG7aY/Mytjj3g==}
+
   postcss-import@15.1.0:
     resolution: {integrity: sha512-hpr+J05B2FVYUAXHeK1YyI267J/dDDhMU6B6civm8hSY1jYJnBXxzKDKDswzJmtLHryrjhnDjqqp/49t8FALew==}
     engines: {node: '>=14.0.0'}
@@ -3994,6 +4006,9 @@ packages:
     resolution: {integrity: sha512-wVORMBGO/FAs/++blGNeAVdbNKtIh1rbBL2EyQ1+J9lClJ93KiiKe8PmFIVdXhHcyv44SL9oglmfeSsndo0jRw==}
     engines: {node: '>=12.20'}
     hasBin: true
+
+  uncrypto@0.1.3:
+    resolution: {integrity: sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q==}
 
   undici-types@6.11.1:
     resolution: {integrity: sha512-mIDEX2ek50x0OlRgxryxsenE5XaQD4on5U2inY7RApK3SOJpofyw7uW2AyfMKkhAxXIceo2DeWGVGwyvng1GNQ==}
@@ -5892,6 +5907,10 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
+  '@upstash/redis@1.35.1':
+    dependencies:
+      uncrypto: 0.1.3
+
   '@vitest/browser@3.2.4(vite@6.3.5(@types/node@22.0.0)(jiti@1.21.7)(yaml@2.8.0))(vitest@3.2.4)':
     dependencies:
       '@testing-library/dom': 10.4.0
@@ -7236,6 +7255,8 @@ snapshots:
 
   pirates@4.0.7: {}
 
+  pocketbase@0.26.1: {}
+
   postcss-import@15.1.0(postcss@8.5.0):
     dependencies:
       postcss: 8.5.0
@@ -8133,6 +8154,8 @@ snapshots:
   type-detect@4.0.8: {}
 
   typescript@5.0.2: {}
+
+  uncrypto@0.1.3: {}
 
   undici-types@6.11.1: {}
 

@@ -13,4 +13,3 @@ it("should pass a basic test", () => {
 
   expect(brevity && is && correct && and).toBe(true)
 })
-

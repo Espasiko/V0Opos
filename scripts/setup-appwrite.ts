@@ -150,4 +150,3 @@ async function setupAppwrite() {
 
 // Ejecutar script
 setupAppwrite()
-

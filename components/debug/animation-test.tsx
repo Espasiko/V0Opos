@@ -27,4 +27,3 @@ const AnimationTest = () => {
 }
 
 export default AnimationTest
-

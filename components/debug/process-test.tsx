@@ -15,4 +15,3 @@ describe("Process Test", () => {
     expect(brevity && is && correct && and).toBe(true) // Example assertion
   })
 })
-

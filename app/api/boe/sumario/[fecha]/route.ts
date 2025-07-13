@@ -30,4 +30,3 @@ export async function GET(request: Request, { params }: { params: { fecha: strin
     return NextResponse.json({ error: "Error al procesar la solicitud" }, { status: 500 })
   }
 }
-

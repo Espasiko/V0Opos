@@ -72,4 +72,3 @@ const DatabaseTest = () => {
 }
 
 export default DatabaseTest
-

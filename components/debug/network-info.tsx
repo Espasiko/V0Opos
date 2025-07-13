@@ -21,4 +21,3 @@ const NetworkInfo = () => {
 }
 
 export default NetworkInfo
-

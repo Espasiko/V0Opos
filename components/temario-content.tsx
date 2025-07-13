@@ -1,10 +1,35 @@
+"use client"
+
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookOpen, Search, FileText, Download } from "lucide-react"
+import { RecentSearches } from "@/components/recent-searches"
+import { setValue, getValue } from "@/lib/upstash"
 
 export function TemarioContent() {
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const handleSearch = async () => {
+    if (searchTerm) {
+      try {
+        // Get existing searches
+        const storedSearches = await getValue("recentSearches")
+        let searches = storedSearches ? JSON.parse(storedSearches as string) : []
+
+        // Add the new search term
+        searches = [searchTerm, ...searches.filter((s: string) => s !== searchTerm)].slice(0, 5) // Limit to 5 searches
+
+        // Store the updated searches
+        await setValue("recentSearches", JSON.stringify(searches))
+      } catch (error) {
+        console.error("Failed to store recent search:", error)
+      }
+    }
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
@@ -15,10 +40,21 @@ export function TemarioContent() {
         <div className="flex items-center gap-2 w-full md:w-auto mt-3 md:mt-0">
           <div className="relative w-full md:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input type="search" placeholder="Buscar en el temario..." className="w-full pl-8" />
+            <Input
+              type="search"
+              placeholder="Buscar en el temario..."
+              className="w-full pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
+          <Button className="whitespace-nowrap" onClick={handleSearch}>
+            Buscar
+          </Button>
         </div>
       </div>
+
+      <RecentSearches />
 
       <Tabs defaultValue="todos" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
@@ -158,4 +194,3 @@ export function TemarioContent() {
     </div>
   )
 }
-

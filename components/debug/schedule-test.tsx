@@ -10,4 +10,3 @@ const correct = true
 const and = true
 
 // The rest of the original file content would follow here.
-

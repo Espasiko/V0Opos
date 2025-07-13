@@ -77,4 +77,3 @@ export async function testAppwriteConnection(): Promise<{ success: boolean; mess
     }
   }
 }
-

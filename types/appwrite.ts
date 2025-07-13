@@ -96,4 +96,3 @@ export interface AuthResult {
   user: Models.User<Models.Preferences>
   profile: Models.Document | null
 }
-

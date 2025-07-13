@@ -1,6 +1,8 @@
 import { jwtVerify, SignJWT } from "jose"
 import { cookies } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
+import { Redis } from "@upstash/redis"
+import { pb } from "@/lib/pocketbase"
 
 // Tipos
 export interface UserSession {
@@ -38,16 +40,71 @@ export async function verifyToken(token: string): Promise<UserSession | null> {
   }
 }
 
-// Obtener la sesión del usuario desde las cookies
-export async function getSession(): Promise<UserSession | null> {
-  const cookieStore = cookies()
-  const token = cookieStore.get("session_token")?.value
+const redisUrl = process.env.KV_URL
+const redisToken = process.env.KV_REST_API_TOKEN
 
-  if (!token) {
+if (!redisUrl || !redisToken) {
+  console.error("KV_URL and KV_REST_API_TOKEN environment variables must be defined")
+}
+
+const redis = new Redis({
+  url: redisUrl || "",
+  token: redisToken || "",
+})
+
+async function getSession(sessionId: string): Promise<any | null> {
+  try {
+    const sessionData = await redis.get(sessionId)
+    return sessionData ? JSON.parse(sessionData as string) : null
+  } catch (error) {
+    console.error("Error getting session:", error)
+    return null
+  }
+}
+
+async function setSession(sessionId: string, data: any): Promise<void> {
+  try {
+    await redis.set(sessionId, JSON.stringify(data))
+  } catch (error) {
+    console.error("Error setting session:", error)
+  }
+}
+
+async function deleteSession(sessionId: string): Promise<void> {
+  try {
+    await redis.del(sessionId)
+  } catch (error) {
+    console.error("Error deleting session:", error)
+  }
+}
+
+// Obtener la sesión del usuario desde las cookies y Redis
+export async function getSessionFromRedis(): Promise<UserSession | null> {
+  const cookieStore = cookies()
+  const sessionId = cookieStore.get("session_token")?.value
+
+  if (!sessionId) {
     return null
   }
 
-  return verifyToken(token)
+  const sessionData = await getSession(sessionId)
+  if (!sessionData) {
+    return null
+  }
+
+  return sessionData as UserSession
+}
+
+// Crear una sesión y guardarla en Redis
+export async function createSession(user: UserSession): Promise<string> {
+  const sessionId = crypto.randomUUID()
+  await setSession(sessionId, user)
+  return sessionId
+}
+
+// Eliminar una sesión de Redis
+export async function deleteSessionFromRedis(sessionId: string): Promise<void> {
+  await deleteSession(sessionId)
 }
 
 // Middleware para proteger rutas API
@@ -115,3 +172,110 @@ export async function validateCredentials(email: string, password: string) {
   return userWithoutPassword
 }
 
+import { Client, Account, Databases, Storage } from "appwrite"
+
+// Configuración de Appwrite
+export const appwriteConfig = {
+  endpoint: "https://cloud.appwrite.io/v1",
+  projectId: "67e11f880033f06544b0",
+  databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || "",
+  storageId: process.env.NEXT_PUBLIC_APPWRITE_STORAGE_ID || "",
+  // Colecciones relevantes para tu aplicación
+  userCollectionId: process.env.NEXT_PUBLIC_APPWRITE_USER_COLLECTION_ID || "",
+  temasCollectionId: process.env.NEXT_PUBLIC_APPWRITE_TEMAS_COLLECTION_ID || "",
+  testsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_TESTS_COLLECTION_ID || "",
+  preguntasCollectionId: process.env.NEXT_PUBLIC_APPWRITE_PREGUNTAS_COLLECTION_ID || "",
+  mapasCollectionId: process.env.NEXT_PUBLIC_APPWRITE_MAPAS_COLLECTION_ID || "",
+  publicacionesCollectionId: process.env.NEXT_PUBLIC_APPWRITE_PUBLICACIONES_COLLECTION_ID || "",
+  comentariosCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COMENTARIOS_COLLECTION_ID || "",
+}
+
+// Cliente de Appwrite
+export const createAppwriteClient = () => {
+  const client = new Client()
+  client.setEndpoint("https://cloud.appwrite.io/v1").setProject("67e11f880033f06544b0")
+  return client
+}
+
+// Servicios de Appwrite
+export const createAccount = (client: Client) => {
+  return new Account(client)
+}
+
+export const createDatabases = (client: Client) => {
+  return new Databases(client)
+}
+
+export const createStorage = (client: Client) => {
+  return new Storage(client)
+}
+
+// Función para validar la configuración
+export const validateAppwriteConfig = () => {
+  const requiredEnvVars = [
+    "NEXT_PUBLIC_APPWRITE_ENDPOINT",
+    "NEXT_PUBLIC_APPWRITE_PROJECT_ID",
+    "NEXT_PUBLIC_APPWRITE_DATABASE_ID",
+  ]
+
+  const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar])
+
+  if (missingEnvVars.length > 0) {
+    console.warn(
+      `Advertencia: Las siguientes variables de entorno no están definidas: ${missingEnvVars.join(
+        ", ",
+      )}. Se utilizarán valores predeterminados.`,
+    )
+  }
+
+  return {
+    valid: missingEnvVars.length === 0,
+    message:
+      missingEnvVars.length > 0 ? `Faltan las siguientes variables de entorno: ${missingEnvVars.join(", ")}` : "",
+  }
+}
+
+import { ID } from "appwrite"
+export { ID }
+
+// Funciones para PocketBase
+// Función para obtener la cuenta actual usando PocketBase
+export async function getAccountFromPocketBase() {
+  try {
+    if (!pb.authStore.isValid) {
+      return null
+    }
+
+    // Verificar que el usuario actual esté disponible
+    const user = pb.authStore.model
+
+    if (!user) {
+      return null
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      ubicacion: user.ubicacion,
+    }
+  } catch (error) {
+    console.error("Error al obtener cuenta:", error)
+    return null
+  }
+}
+
+// Función para verificar si el usuario está autenticado
+export function isAuthenticated() {
+  return pb.authStore.isValid
+}
+
+// Función para obtener el token actual
+export function getToken() {
+  return pb.authStore.token
+}
+
+// Función para limpiar la autenticación
+export function clearAuth() {
+  pb.authStore.clear()
+}

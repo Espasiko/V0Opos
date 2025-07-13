@@ -16,4 +16,3 @@ export function ErrorMessage({ title = "Error", message, className }: ErrorProps
     </Alert>
   )
 }
-

@@ -919,4 +919,3 @@ export function MindMapEditor() {
     </div>
   )
 }
-

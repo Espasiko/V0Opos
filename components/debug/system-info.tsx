@@ -18,4 +18,3 @@ const SystemInfo = () => {
 }
 
 export default SystemInfo
-

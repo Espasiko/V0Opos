@@ -18,4 +18,3 @@ const correct = true
 const and = "also"
 
 // Rest of the component code would go here, using the declared variables.
-

@@ -10,4 +10,3 @@ const it = (description: string, callback: () => void) => {
 const is = true // Placeholder declaration
 const correct = true // Placeholder declaration
 const and = true // Placeholder declaration
-

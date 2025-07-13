@@ -244,4 +244,3 @@ export async function generateQuestions(text: string, numQuestions = 5): Promise
   const allQuestions = [...customQuestions, ...baseQuestions]
   return allQuestions.slice(0, numQuestions)
 }
-

@@ -20,4 +20,3 @@ const AuthMethodsTest = () => {
 }
 
 export default AuthMethodsTest
-

@@ -24,4 +24,3 @@ const DiagnosticoAvanzadoPage = () => {
 }
 
 export default DiagnosticoAvanzadoPage
-

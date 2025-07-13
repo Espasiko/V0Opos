@@ -10,4 +10,3 @@ const any = null
 const modifications = null
 
 // The rest of the original code would follow here.
-

@@ -7,4 +7,3 @@ const issues = null
 const reported = null
 
 ...rest of the code here...
-

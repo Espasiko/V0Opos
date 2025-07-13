@@ -16,4 +16,3 @@ const TriggerTest = () => {
 }
 
 export default TriggerTest
-

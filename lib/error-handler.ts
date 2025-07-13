@@ -69,4 +69,3 @@ export function logError(error: any, context?: Record<string, any>) {
     context,
   })
 }
-

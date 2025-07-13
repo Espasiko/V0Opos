@@ -24,4 +24,3 @@ export async function GET() {
     return NextResponse.json({ error: error.message || "Error al obtener información del endpoint" }, { status: 500 })
   }
 }
-

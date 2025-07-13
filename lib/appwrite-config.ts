@@ -60,4 +60,3 @@ export const validateAppwriteConfig = () => {
       missingEnvVars.length > 0 ? `Faltan las siguientes variables de entorno: ${missingEnvVars.join(", ")}` : "",
   }
 }
-

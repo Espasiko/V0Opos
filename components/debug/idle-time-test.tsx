@@ -13,4 +13,3 @@ const and = true
 
 // You would replace this with the actual content of the original file
 // and then integrate the variable declarations/imports appropriately.
-

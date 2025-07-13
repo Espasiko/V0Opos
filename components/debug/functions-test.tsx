@@ -25,4 +25,3 @@ const and = {
 } // Dummy and object
 
 // The rest of the original file content would go here.
-
