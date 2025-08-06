@@ -3,8 +3,11 @@ import PocketBase from "pocketbase"
 // Configuración de PocketBase
 const POCKETBASE_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL || "http://127.0.0.1:8090"
 
-// Cliente de PocketBase
+// Cliente de PocketBase con configuración mejorada
 export const pb = new PocketBase(POCKETBASE_URL)
+
+// Configurar el cliente
+pb.autoCancellation(false)
 
 // Colecciones
 export const COLLECTIONS = {
@@ -85,15 +88,71 @@ export const getCurrentDate = () => {
   return new Date().toISOString()
 }
 
-// Función para manejar errores de PocketBase
+// Función mejorada para manejar errores de PocketBase
 export const handlePBError = (error: any) => {
-  console.error("PocketBase Error:", error)
+  console.error("PocketBase Error Details:", {
+    error,
+    message: error?.message,
+    status: error?.status,
+    response: error?.response,
+    data: error?.response?.data,
+    url: POCKETBASE_URL
+  })
 
-  if (error?.response?.data) {
-    return error.response.data.message || "Error desconocido"
+  // Si es un error de red/fetch
+  if (error.name === 'TypeError' || error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+    return `Error de conexión: No se puede conectar a PocketBase en ${POCKETBASE_URL}. Verifica que el servidor esté ejecutándose.`
   }
 
-  return error.message || "Error de conexión"
+  // Si es un error de conexión rechazada
+  if (error.message?.includes('ECONNREFUSED') || error.code === 'ECONNREFUSED') {
+    return `Conexión rechazada: PocketBase no está ejecutándose en ${POCKETBASE_URL}. Ejecuta: ./pocketbase serve`
+  }
+
+  // Si es un error de timeout
+  if (error.message?.includes('timeout') || error.code === 'ETIMEDOUT') {
+    return `Timeout: El servidor PocketBase no responde en ${POCKETBASE_URL}. Verifica la conexión.`
+  }
+
+  // Si es un error de PocketBase con respuesta
+  if (error?.response?.data) {
+    const errorData = error.response.data
+    
+    // Errores de validación
+    if (errorData.data) {
+      const fieldErrors = Object.entries(errorData.data).map(([field, error]: [string, any]) => {
+        return `${field}: ${error.message || error}`
+      }).join(', ')
+      return `Error de validación: ${fieldErrors}`
+    }
+    
+    // Mensaje de error general
+    if (errorData.message) {
+      return errorData.message
+    }
+  }
+
+  // Si es un error con status HTTP
+  if (error?.status) {
+    switch (error.status) {
+      case 400:
+        return "Datos inválidos. Verifica la información ingresada."
+      case 401:
+        return "Credenciales incorrectas. Verifica tu email y contraseña."
+      case 403:
+        return "No tienes permisos para realizar esta acción."
+      case 404:
+        return "Usuario no encontrado o recurso no disponible."
+      case 500:
+        return "Error interno del servidor PocketBase. Intenta más tarde."
+      default:
+        return `Error del servidor (${error.status}): ${error.message || 'Error desconocido'}`
+    }
+  }
+
+  // Error genérico con información de debugging
+  const errorMessage = error.message || "Error desconocido"
+  return `Error de PocketBase: ${errorMessage}. URL: ${POCKETBASE_URL}`
 }
 
 // Función para verificar si el usuario está autenticado
@@ -109,4 +168,42 @@ export const getCurrentUser = () => {
 // Función para limpiar la autenticación
 export const clearAuth = () => {
   pb.authStore.clear()
+}
+
+// Función para verificar la conexión con PocketBase
+export const checkConnection = async () => {
+  try {
+    console.log("Verificando conexión con PocketBase en:", POCKETBASE_URL)
+    
+    // Intentar hacer una petición simple de health check
+    const response = await fetch(`${POCKETBASE_URL}/api/health`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (response.ok) {
+      console.log("Conexión exitosa con PocketBase")
+      return { 
+        success: true, 
+        message: `Conexión exitosa con PocketBase en ${POCKETBASE_URL}`,
+        url: POCKETBASE_URL
+      }
+    } else {
+      console.error("Respuesta no exitosa:", response.status, response.statusText)
+      return { 
+        success: false, 
+        message: `Error HTTP ${response.status}: ${response.statusText}`,
+        url: POCKETBASE_URL
+      }
+    }
+  } catch (error) {
+    console.error("Error en checkConnection:", error)
+    return { 
+      success: false, 
+      message: handlePBError(error),
+      url: POCKETBASE_URL
+    }
+  }
 }

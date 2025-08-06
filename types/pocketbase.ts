@@ -1,96 +1,97 @@
-export interface PBUser {
+// Tipos base de PocketBase
+export interface BaseRecord {
   id: string
+  created: string
+  updated: string
+}
+
+// Usuario
+export interface PBUser extends BaseRecord {
   email: string
   name: string
-  ubicacion?: string
+  username?: string
   avatar?: string
-  created: string
-  updated: string
+  ubicacion?: string
+  verified: boolean
 }
 
-export interface PBTema {
-  id: string
+// Tema de estudio
+export interface PBTema extends BaseRecord {
   titulo: string
-  descripcion: string
-  contenido: string
   categoria: string
-  nivel: "basico" | "intermedio" | "avanzado"
-  tags: string[]
-  created: string
-  updated: string
+  contenido: string
+  descripcion?: string
+  orden?: number
+  activo: boolean
 }
 
-export interface PBTest {
-  id: string
+// Test/Examen
+export interface PBTest extends BaseRecord {
   titulo: string
   descripcion: string
   tema_id: string
-  preguntas: PBPregunta[]
   usuario: string
+  preguntas: string[] // Array de IDs de preguntas
+  dificultad: number // 1-5
+  tiempo_limite?: number // en minutos
   generado_por_ia: boolean
-  puntuacion_maxima: number
-  tiempo_limite?: number
-  created: string
-  updated: string
-  expand?: {
-    usuario: PBUser
-    preguntas: PBPregunta[]
-  }
+  activo: boolean
 }
 
-export interface PBPregunta {
-  id: string
-  test_id: string
+// Pregunta
+export interface PBPregunta extends BaseRecord {
   pregunta: string
-  opciones: string[]
-  respuesta_correcta: number
-  explicacion?: string
-  puntos: number
-  created: string
-  updated: string
+  opciones: string[] // Array de opciones
+  respuesta_correcta: number // Índice de la respuesta correcta
+  explicacion: string
+  tema_id: string
+  dificultad: number
+  tipo: "multiple" | "verdadero_falso" | "completar"
 }
 
-export interface PBMapaMental {
-  id: string
+// Mapa Mental
+export interface PBMapaMental extends BaseRecord {
   titulo: string
-  descripcion?: string
-  contenido: any // JSON con la estructura del mapa
+  contenido: object // JSON con la estructura del mapa
   tema_id: string
   usuario: string
   generado_por_ia: boolean
   publico: boolean
-  created: string
-  updated: string
-  expand?: {
-    usuario: PBUser
-  }
 }
 
-export interface PBPublicacion {
-  id: string
+// Publicación del foro
+export interface PBPublicacion extends BaseRecord {
   titulo: string
   contenido: string
-  tipo: "pregunta" | "discusion" | "recurso" | "noticia"
-  tags: string[]
   usuario: string
+  categoria: string
   likes: number
   comentarios_count: number
-  created: string
-  updated: string
-  expand?: {
-    usuario: PBUser
-  }
+  activo: boolean
 }
 
-export interface PBComentario {
-  id: string
-  publicacion_id: string
-  usuario: string
+// Comentario
+export interface PBComentario extends BaseRecord {
   contenido: string
+  usuario: string
+  publicacion_id: string
+  parent_id?: string // Para respuestas anidadas
   likes: number
-  created: string
-  updated: string
-  expand?: {
-    usuario: PBUser
-  }
+}
+
+// Respuesta de IA
+export interface IAResponse {
+  success: boolean
+  data?: any
+  error?: string
+  model?: string
+  tokens_used?: number
+}
+
+// Configuración de IA
+export interface IAConfig {
+  model: string
+  temperature: number
+  max_tokens: number
+  provider: "cohere" | "huggingface" | "openai"
 }

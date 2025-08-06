@@ -1,8 +1,8 @@
 import { jwtVerify, SignJWT } from "jose"
 import { cookies } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
-import { Redis } from "@upstash/redis"
 import { pb } from "@/lib/pocketbase"
+import { PocketBaseApi } from "./pocketbase-api"
 
 // Tipos
 export interface UserSession {
@@ -12,7 +12,7 @@ export interface UserSession {
   role: "user" | "admin"
 }
 
-// Clave secreta para firmar los tokens JWT (en producción, usar una variable de entorno)
+// Clave secreta para firmar los tokens JWT
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "oposia_secret_key_change_in_production")
 
 // Opciones para el token
@@ -40,22 +40,43 @@ export async function verifyToken(token: string): Promise<UserSession | null> {
   }
 }
 
+// Configuración opcional de Redis
 const redisUrl = process.env.KV_URL
 const redisToken = process.env.KV_REST_API_TOKEN
+const isRedisAvailable = redisUrl && redisToken
 
-if (!redisUrl || !redisToken) {
-  console.error("KV_URL and KV_REST_API_TOKEN environment variables must be defined")
+let redis: any = null
+
+// Solo inicializar Redis si las variables están disponibles
+if (isRedisAvailable) {
+  try {
+    const { Redis } = require("@upstash/redis")
+    redis = new Redis({
+      url: redisUrl,
+      token: redisToken,
+    })
+    console.log("✅ Redis configurado correctamente")
+  } catch (error) {
+    console.warn("⚠️ Error configurando Redis:", error)
+    redis = null
+  }
+} else {
+  console.log("ℹ️ Redis no configurado - usando almacenamiento en memoria")
 }
 
-const redis = new Redis({
-  url: redisUrl || "",
-  token: redisToken || "",
-})
+// Almacenamiento en memoria como fallback
+const memoryStore = new Map<string, any>()
 
 async function getSession(sessionId: string): Promise<any | null> {
   try {
-    const sessionData = await redis.get(sessionId)
-    return sessionData ? JSON.parse(sessionData as string) : null
+    if (redis) {
+      const sessionData = await redis.get(sessionId)
+      return sessionData ? JSON.parse(sessionData as string) : null
+    } else {
+      // Fallback a memoria
+      const sessionData = memoryStore.get(sessionId)
+      return sessionData || null
+    }
   } catch (error) {
     console.error("Error getting session:", error)
     return null
@@ -64,7 +85,12 @@ async function getSession(sessionId: string): Promise<any | null> {
 
 async function setSession(sessionId: string, data: any): Promise<void> {
   try {
-    await redis.set(sessionId, JSON.stringify(data))
+    if (redis) {
+      await redis.set(sessionId, JSON.stringify(data))
+    } else {
+      // Fallback a memoria
+      memoryStore.set(sessionId, data)
+    }
   } catch (error) {
     console.error("Error setting session:", error)
   }
@@ -72,13 +98,18 @@ async function setSession(sessionId: string, data: any): Promise<void> {
 
 async function deleteSession(sessionId: string): Promise<void> {
   try {
-    await redis.del(sessionId)
+    if (redis) {
+      await redis.del(sessionId)
+    } else {
+      // Fallback a memoria
+      memoryStore.delete(sessionId)
+    }
   } catch (error) {
     console.error("Error deleting session:", error)
   }
 }
 
-// Obtener la sesión del usuario desde las cookies y Redis
+// Obtener la sesión del usuario desde las cookies y almacenamiento
 export async function getSessionFromRedis(): Promise<UserSession | null> {
   const cookieStore = cookies()
   const sessionId = cookieStore.get("session_token")?.value
@@ -95,30 +126,27 @@ export async function getSessionFromRedis(): Promise<UserSession | null> {
   return sessionData as UserSession
 }
 
-// Crear una sesión y guardarla en Redis
+// Crear una sesión y guardarla
 export async function createSession(user: UserSession): Promise<string> {
   const sessionId = crypto.randomUUID()
   await setSession(sessionId, user)
   return sessionId
 }
 
-// Eliminar una sesión de Redis
+// Eliminar una sesión
 export async function deleteSessionFromRedis(sessionId: string): Promise<void> {
   await deleteSession(sessionId)
 }
 
 // Middleware para proteger rutas API
 export async function authMiddleware(request: NextRequest) {
-  // Verificar si la ruta requiere autenticación
   const isApiRoute = request.nextUrl.pathname.startsWith("/api/")
   const isPublicRoute = ["/api/auth/login", "/api/auth/register"].includes(request.nextUrl.pathname)
 
-  // Si es una ruta pública o no es una ruta API, permitir el acceso
   if (!isApiRoute || isPublicRoute) {
     return NextResponse.next()
   }
 
-  // Verificar el token de autenticación
   const token = request.cookies.get("session_token")?.value
 
   if (!token) {
@@ -131,17 +159,15 @@ export async function authMiddleware(request: NextRequest) {
     return NextResponse.json({ error: "Token inválido" }, { status: 401 })
   }
 
-  // Continuar con la solicitud
   return NextResponse.next()
 }
 
 // Simulación de base de datos de usuarios para desarrollo
-// En producción, esto se conectaría a Supabase o similar
 export const mockUsers = [
   {
     id: "1",
     email: "usuario@ejemplo.com",
-    password: "password123", // En producción, usar hash
+    password: "password123",
     nombre: "Usuario Ejemplo",
     role: "user" as const,
     ubicacion: "Madrid",
@@ -150,7 +176,7 @@ export const mockUsers = [
   {
     id: "2",
     email: "admin@oposia.com",
-    password: "admin123", // En producción, usar hash
+    password: "admin123",
     nombre: "Administrador",
     role: "admin" as const,
     ubicacion: "Barcelona",
@@ -158,124 +184,43 @@ export const mockUsers = [
   },
 ]
 
-// Función para validar credenciales (simulada)
+// Función para validar credenciales
 export async function validateCredentials(email: string, password: string) {
-  // En producción, verificar contra la base de datos y usar hash para las contraseñas
   const user = mockUsers.find((u) => u.email === email && u.password === password)
 
   if (!user) {
     return null
   }
 
-  // No devolver la contraseña
   const { password: _, ...userWithoutPassword } = user
   return userWithoutPassword
 }
 
-import { Client, Account, Databases, Storage } from "appwrite"
-
-// Configuración de Appwrite
-export const appwriteConfig = {
-  endpoint: "https://cloud.appwrite.io/v1",
-  projectId: "67e11f880033f06544b0",
-  databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || "",
-  storageId: process.env.NEXT_PUBLIC_APPWRITE_STORAGE_ID || "",
-  // Colecciones relevantes para tu aplicación
-  userCollectionId: process.env.NEXT_PUBLIC_APPWRITE_USER_COLLECTION_ID || "",
-  temasCollectionId: process.env.NEXT_PUBLIC_APPWRITE_TEMAS_COLLECTION_ID || "",
-  testsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_TESTS_COLLECTION_ID || "",
-  preguntasCollectionId: process.env.NEXT_PUBLIC_APPWRITE_PREGUNTAS_COLLECTION_ID || "",
-  mapasCollectionId: process.env.NEXT_PUBLIC_APPWRITE_MAPAS_COLLECTION_ID || "",
-  publicacionesCollectionId: process.env.NEXT_PUBLIC_APPWRITE_PUBLICACIONES_COLLECTION_ID || "",
-  comentariosCollectionId: process.env.NEXT_PUBLIC_APPWRITE_COMENTARIOS_COLLECTION_ID || "",
-}
-
-// Cliente de Appwrite
-export const createAppwriteClient = () => {
-  const client = new Client()
-  client.setEndpoint("https://cloud.appwrite.io/v1").setProject("67e11f880033f06544b0")
-  return client
-}
-
-// Servicios de Appwrite
-export const createAccount = (client: Client) => {
-  return new Account(client)
-}
-
-export const createDatabases = (client: Client) => {
-  return new Databases(client)
-}
-
-export const createStorage = (client: Client) => {
-  return new Storage(client)
-}
-
-// Función para validar la configuración
-export const validateAppwriteConfig = () => {
-  const requiredEnvVars = [
-    "NEXT_PUBLIC_APPWRITE_ENDPOINT",
-    "NEXT_PUBLIC_APPWRITE_PROJECT_ID",
-    "NEXT_PUBLIC_APPWRITE_DATABASE_ID",
-  ]
-
-  const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar])
-
-  if (missingEnvVars.length > 0) {
-    console.warn(
-      `Advertencia: Las siguientes variables de entorno no están definidas: ${missingEnvVars.join(
-        ", ",
-      )}. Se utilizarán valores predeterminados.`,
-    )
-  }
-
-  return {
-    valid: missingEnvVars.length === 0,
-    message:
-      missingEnvVars.length > 0 ? `Faltan las siguientes variables de entorno: ${missingEnvVars.join(", ")}` : "",
-  }
-}
-
-import { ID } from "appwrite"
-export { ID }
-
 // Funciones para PocketBase
-// Función para obtener la cuenta actual usando PocketBase
-export async function getAccountFromPocketBase() {
+export async function getAccount() {
   try {
     if (!pb.authStore.isValid) {
       return null
     }
-
-    // Verificar que el usuario actual esté disponible
-    const user = pb.authStore.model
-
-    if (!user) {
-      return null
-    }
-
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      ubicacion: user.ubicacion,
-    }
+    return await PocketBaseApi.getCurrentUser()
   } catch (error) {
-    console.error("Error al obtener cuenta:", error)
+    console.error("Error obteniendo cuenta:", error)
     return null
   }
 }
 
-// Función para verificar si el usuario está autenticado
 export function isAuthenticated() {
   return pb.authStore.isValid
 }
 
-// Función para obtener el token actual
 export function getToken() {
   return pb.authStore.token
 }
 
-// Función para limpiar la autenticación
+export function getCurrentUser() {
+  return pb.authStore.model
+}
+
 export function clearAuth() {
   pb.authStore.clear()
 }

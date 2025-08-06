@@ -1,23 +1,69 @@
 import { NextResponse } from "next/server"
-import { PocketBaseApi } from "@/lib/pocketbase-api"
+
+// Datos mock para desarrollo
+const MOCK_MAPAS = [
+  {
+    id: "1",
+    titulo: "Mapa Mental - Seguridad Social",
+    contenido: {
+      nodo_central: "Seguridad Social",
+      nodos: [
+        {
+          id: "1",
+          texto: "Conceptos Básicos",
+          hijos: ["Definición", "Objetivos", "Principios"]
+        },
+        {
+          id: "2", 
+          texto: "Regímenes",
+          hijos: ["General", "Especiales", "Autónomos"]
+        },
+        {
+          id: "3",
+          texto: "Prestaciones",
+          hijos: ["Contributivas", "No contributivas", "Asistenciales"]
+        }
+      ]
+    },
+    created: new Date().toISOString(),
+  },
+  {
+    id: "2",
+    titulo: "Mapa Mental - Prestaciones",
+    contenido: {
+      nodo_central: "Prestaciones SS",
+      nodos: [
+        {
+          id: "1",
+          texto: "Por Jubilación",
+          hijos: ["Ordinaria", "Anticipada", "Parcial"]
+        },
+        {
+          id: "2",
+          texto: "Por Incapacidad", 
+          hijos: ["Temporal", "Permanente", "Gran Invalidez"]
+        }
+      ]
+    },
+    created: new Date().toISOString(),
+  }
+]
 
 export async function GET() {
-  try {
-    const mapas = await PocketBaseApi.getMapasMentales()
-    return NextResponse.json(mapas)
-  } catch (error) {
-    console.error("Error en API Route /api/mapas:", error)
-    return NextResponse.json({ error: "Error al obtener mapas mentales" }, { status: 500 })
-  }
+  return NextResponse.json(MOCK_MAPAS)
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const mapa = await PocketBaseApi.crearMapaMental(body)
-    return NextResponse.json(mapa)
+    const data = await request.json()
+    const newMapa = {
+      id: Date.now().toString(),
+      ...data,
+      created: new Date().toISOString(),
+    }
+    
+    return NextResponse.json(newMapa)
   } catch (error) {
-    console.error("Error en API Route /api/mapas (POST):", error)
-    return NextResponse.json({ error: "Error al crear mapa mental" }, { status: 500 })
+    return NextResponse.json({ error: "Error creando mapa mental" }, { status: 500 })
   }
 }

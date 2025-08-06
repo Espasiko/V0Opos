@@ -4,8 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Users, BookOpen, Brain, MessageCircle, ArrowRight } from "lucide-react"
-import { PocketBaseStatus } from "./pocketbase-status"
+import { Users, BookOpen, Brain, MessageCircle, ArrowRight, Code } from 'lucide-react'
 import { BOEActualizaciones } from "./boe-actualizaciones"
 import Link from "next/link"
 
@@ -56,43 +55,62 @@ export function DashboardOverview() {
           <h1 className="text-3xl font-bold tracking-tight">Bienvenido a OposIA</h1>
           <p className="text-muted-foreground">Tu plataforma de preparación para oposiciones con IA</p>
         </div>
-        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-          🚀 PocketBase
+        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+          <Code className="mr-1 h-3 w-3" />
+          Modo Desarrollo
         </Badge>
       </div>
 
-      {/* Estado de PocketBase */}
-      <div className="flex justify-center">
-        <PocketBaseStatus />
-      </div>
+      {/* Aviso de modo desarrollo */}
+      <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+        <CardHeader>
+          <CardTitle className="text-yellow-800 flex items-center gap-2">
+            <Code className="h-5 w-5" />
+            🚧 Modo Desarrollo Activo
+          </CardTitle>
+          <CardDescription className="text-yellow-700">
+            La autenticación está deshabilitada. Todos los datos son simulados para facilitar el desarrollo.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2 text-sm text-yellow-700">
+            <p>✅ Sin login/registro requerido</p>
+            <p>✅ Datos mock disponibles</p>
+            <p>✅ APIs simuladas funcionando</p>
+            <p>✅ Navegación libre</p>
+            <p>✅ Sin errores de autenticación</p>
+            <p>✅ Desarrollo sin interrupciones</p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Estadísticas */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Usuarios Activos"
           value={stats.totalUsers}
-          description="Total de usuarios registrados"
+          description="Total de usuarios registrados (mock)"
           icon={Users}
           color="text-blue-500"
         />
         <StatCard
           title="Temas"
           value={stats.totalTopics}
-          description="Temas de estudio disponibles"
+          description="Temas de estudio disponibles (mock)"
           icon={BookOpen}
           color="text-green-500"
         />
         <StatCard
           title="Tests"
           value={stats.totalTests}
-          description="Tests generados y completados"
+          description="Tests generados y completados (mock)"
           icon={Brain}
           color="text-purple-500"
         />
         <StatCard
           title="Publicaciones"
           value={stats.totalPosts}
-          description="Posts en la comunidad"
+          description="Posts en la comunidad (mock)"
           icon={MessageCircle}
           color="text-orange-500"
         />
@@ -106,8 +124,8 @@ export function DashboardOverview() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Tu Progreso</CardTitle>
-            <CardDescription>Seguimiento de tu preparación</CardDescription>
+            <CardTitle>Tu Progreso (Mock)</CardTitle>
+            <CardDescription>Seguimiento simulado de tu preparación</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -150,22 +168,22 @@ export function DashboardOverview() {
         </Card>
       </div>
 
-      {/* Información de migración */}
-      <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+      {/* Información de desarrollo */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
         <CardHeader>
-          <CardTitle className="text-green-800">🎉 Migración Completada</CardTitle>
-          <CardDescription className="text-green-700">
-            El proyecto ha sido migrado exitosamente de Appwrite a PocketBase
+          <CardTitle className="text-blue-800">💻 Información de Desarrollo</CardTitle>
+          <CardDescription className="text-blue-700">
+            Estado actual del proyecto y funcionalidades disponibles
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-2 text-sm text-green-700">
-            <p>✅ Autenticación con PocketBase</p>
-            <p>✅ API REST simplificada</p>
-            <p>✅ Base de datos SQLite integrada</p>
-            <p>✅ Admin UI incluida</p>
-            <p>✅ Mejor rendimiento</p>
-            <p>✅ Código limpio y mantenible</p>
+          <div className="grid grid-cols-2 gap-2 text-sm text-blue-700">
+            <p>✅ Dashboard funcionando</p>
+            <p>✅ Navegación completa</p>
+            <p>✅ APIs mock implementadas</p>
+            <p>✅ Componentes UI listos</p>
+            <p>✅ Rutas configuradas</p>
+            <p>✅ Sin errores de autenticación</p>
           </div>
         </CardContent>
       </Card>

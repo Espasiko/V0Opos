@@ -2,8 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
-import { PocketBaseApi } from "@/lib/pocketbase-api"
-import { pb } from "@/lib/pocketbase"
 
 // Tipos
 interface User {
@@ -26,44 +24,25 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Usuario mock para desarrollo
+const MOCK_USER: User = {
+  id: "dev-user-123",
+  email: "dev@oposia.com",
+  nombre: "Usuario Desarrollo",
+  ubicacion: "Madrid",
+  avatar: ""
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(MOCK_USER)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        if (pb.authStore.isValid) {
-          const currentUser = await PocketBaseApi.getCurrentUser()
-          if (currentUser) {
-            setUser({
-              id: currentUser.id,
-              email: currentUser.email,
-              nombre: currentUser.name,
-              ubicacion: currentUser.ubicacion,
-              avatar: currentUser.avatar,
-            })
-          }
-        }
-      } catch (error) {
-        console.error("Error verificando autenticación:", error)
-        setUser(null)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    checkAuth()
-
-    const unsubscribe = pb.authStore.onChange(() => {
-      if (!pb.authStore.isValid) {
-        setUser(null)
-      }
-    })
-
-    return unsubscribe
+    // Siempre establecer el usuario mock
+    setUser(MOCK_USER)
+    setLoading(false)
   }, [])
 
   const clearError = () => setError(null)
@@ -71,56 +50,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setLoading(true)
     setError(null)
-
-    try {
-      const result = await PocketBaseApi.signIn(email, password)
-      setUser({
-        id: result.user.id,
-        email: result.user.email,
-        nombre: result.user.name,
-        ubicacion: result.user.ubicacion,
-        avatar: result.user.avatar,
-      })
-      router.push("/")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al iniciar sesión")
-    } finally {
+    
+    // Simular login exitoso
+    setTimeout(() => {
+      setUser(MOCK_USER)
       setLoading(false)
-    }
+      router.push("/")
+    }, 500)
   }
 
   const register = async (email: string, password: string, nombre: string, ubicacion?: string) => {
     setLoading(true)
     setError(null)
-
-    try {
-      const result = await PocketBaseApi.signUp(email, password, nombre, ubicacion)
+    
+    // Simular registro exitoso
+    setTimeout(() => {
       setUser({
-        id: result.user.id,
-        email: result.user.email,
-        nombre: result.user.name,
-        ubicacion: result.user.ubicacion,
-        avatar: result.user.avatar,
+        ...MOCK_USER,
+        email,
+        nombre,
+        ubicacion
       })
-      router.push("/")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al registrar usuario")
-    } finally {
       setLoading(false)
-    }
+      router.push("/")
+    }, 500)
   }
 
   const logout = async () => {
     setLoading(true)
-    try {
-      await PocketBaseApi.signOut()
-      setUser(null)
-      router.push("/login")
-    } catch (err) {
-      console.error("Error en logout:", err)
-    } finally {
+    // No hacer logout real, mantener usuario
+    setTimeout(() => {
       setLoading(false)
-    }
+      router.push("/")
+    }, 200)
   }
 
   return (
