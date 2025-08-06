@@ -12,9 +12,9 @@ A simple starter function. Edit `src/main.js` to get started and create somethin
 
 Sample `200` Response:
 
-```text
+\`\`\`text
 Pong
-```
+\`\`\`
 
 ### GET, POST, PUT, PATCH, DELETE /
 
@@ -24,14 +24,14 @@ Pong
 
 Sample `200` Response:
 
-```json
+\`\`\`json
 {
   "motto": "Build like a team of hundreds_",
   "learn": "https://appwrite.io/docs",
   "connect": "https://appwrite.io/discord",
   "getInspired": "https://builtwith.appwrite.io"
 }
-```
+\`\`\`
 
 ## ⚙️ Configuration
 
